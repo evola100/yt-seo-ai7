@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type, Modality, GenerateContentResponse, FinishReason } from "@google/genai";
 import { GeneratedContent, AlternativeTitle } from "../types";
 
-// Fix: Corrected API key initialization to use `process.env.API_KEY` as per the coding guidelines. This resolves the TypeScript error on `import.meta.env` and aligns with the required API key handling method.
+// Fix: Per coding guidelines, API key must be read from process.env.API_KEY.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 
@@ -75,7 +75,7 @@ export const generateSeoContent = async (videoTopic: string, customPrompt?: stri
   try {
     const response = await ai.models.generateContent({
       model: textModel,
-      contents: prompt,
+      contents: [{ parts: [{ text: prompt }] }],
       config: {
         responseMimeType: "application/json",
         responseSchema: responseSchema,
@@ -143,7 +143,7 @@ export const generateAlternativeTitles = async (videoTopic: string, originalTitl
   try {
     const response = await ai.models.generateContent({
       model: textModel,
-      contents: prompt,
+      contents: [{ parts: [{ text: prompt }] }],
       config: {
         responseMimeType: "application/json",
         responseSchema: alternativeTitlesSchema,
@@ -226,7 +226,7 @@ export const generateYouTubeThumbnail = async (options: {
 
     const candidate = response.candidates?.[0];
 
-    if (candidate?.finishReason && candidate.finishReason !== 'STOP') {
+    if (candidate?.finishReason && candidate.finishReason !== FinishReason.STOP) {
       let reason: string = candidate.finishReason;
       if (response.promptFeedback?.blockReason) {
         reason = `${reason} (Motivo de bloqueo: ${response.promptFeedback.blockReason})`;
