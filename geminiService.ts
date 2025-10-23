@@ -1,10 +1,11 @@
 import { GoogleGenAI, Type, Modality, GenerateContentResponse, FinishReason } from "@google/genai";
 import { GeneratedContent, AlternativeTitle } from "../types";
 
-// Fix: Use process.env.API_KEY as per the coding guidelines.
+// Fix: Use process.env.API_KEY as per the guidelines to access the API key.
 const apiKey = process.env.API_KEY;
 
 if (!apiKey) {
+  // This error will be shown in the browser's console if the variable is not set
   throw new Error("API_KEY is not defined. Please check your environment variables.");
 }
 
@@ -231,7 +232,7 @@ export const generateYouTubeThumbnail = async (options: {
 
     const candidate = response.candidates?.[0];
 
-    if (candidate?.finishReason && candidate.finishReason !== 'STOP') {
+    if (candidate?.finishReason && candidate.finishReason !== 'STOP' && candidate.finishReason !== FinishReason.STOP) {
       let reason: string = candidate.finishReason;
       if (response.promptFeedback?.blockReason) {
         reason = `${reason} (Motivo de bloqueo: ${response.promptFeedback.blockReason})`;
