@@ -1,13 +1,13 @@
-import { GoogleGenAI, Type, Modality, GenerateContentResponse } from "@google/genai";
+import { GoogleGenAI, Type, Modality, GenerateContentResponse, FinishReason } from "@google/genai";
 import { GeneratedContent, AlternativeTitle } from "../types";
 
-// FIX: Initialize GoogleGenAI with API key from environment variables as per guidelines.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+// Fix: Use process.env.API_KEY as per the coding guidelines.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
 
 const textModel = 'gemini-2.5-flash';
 const imageModel = 'gemini-2.5-flash-image';
 
-// FIX: Define a response schema to get structured JSON output from the model.
 const responseSchema = {
   type: Type.OBJECT,
   properties: {
@@ -73,7 +73,7 @@ export const generateSeoContent = async (videoTopic: string, customPrompt?: stri
   const prompt = `${basePrompt}${customInstruction}\nGenera el contenido estrictamente en el formato JSON solicitado.`;
 
   try {
-    // FIX: Call the generateContent API with the model, prompt, and JSON configuration.
+    // Fix: Simplified contents to be a string for single-part text prompts.
     const response = await ai.models.generateContent({
       model: textModel,
       contents: prompt,
@@ -83,7 +83,6 @@ export const generateSeoContent = async (videoTopic: string, customPrompt?: stri
       },
     });
 
-    // FIX: Extract text from response and parse it as JSON, cleaning up potential markdown fences.
     const jsonString = response.text.trim();
     const cleanedJsonString = jsonString.replace(/^```json\s*|```\s*$/g, '');
     const generatedContent: GeneratedContent = JSON.parse(cleanedJsonString);
@@ -143,6 +142,7 @@ export const generateAlternativeTitles = async (videoTopic: string, originalTitl
   `;
 
   try {
+    // Fix: Simplified contents to be a string for single-part text prompts.
     const response = await ai.models.generateContent({
       model: textModel,
       contents: prompt,
@@ -180,11 +180,8 @@ export const generateYouTubeThumbnail = async (options: {
   let finalPrompt: string;
 
   if (customPrompt && customPrompt.trim() !== '') {
-    // Para prompts personalizados, confiamos en la entrada del usuario.
     finalPrompt = customPrompt;
   } else {
-    // Para la generación estructurada, construiremos un prompt más robusto.
-    // Usar inglés a menudo produce mejores resultados con los modelos de imagen.
     let styleDescription = '';
     switch (style) {
       case 'vibrant':
@@ -202,7 +199,6 @@ export const generateYouTubeThumbnail = async (options: {
         break;
     }
 
-    // Un prompt más directo y descriptivo en inglés.
     const promptParts: string[] = [
       `YouTube thumbnail for a video titled "${videoTopic}".`,
       `Visual style: ${styleDescription}.`,
@@ -232,36 +228,30 @@ export const generateYouTubeThumbnail = async (options: {
 
     const candidate = response.candidates?.[0];
 
-    // Primero, verificar si fue rechazado explícitamente.
-    if (candidate?.finishReason && candidate.finishReason !== 'STOP') {
-      let reason = candidate.finishReason;
+    if (candidate?.finishReason && candidate.finishReason !== FinishReason.STOP) {
+      let reason: string = candidate.finishReason;
       if (response.promptFeedback?.blockReason) {
         reason = `${reason} (Motivo de bloqueo: ${response.promptFeedback.blockReason})`;
       }
-      // Proporcionar un mensaje de error más claro y accionable.
       throw new Error(`La IA rechazó la solicitud de imagen (Razón: ${reason}). Por favor, intenta con un prompt diferente o más simple, especialmente si usas un prompt personalizado.`);
     }
 
-    // Ahora, buscar los datos de la imagen.
     const parts = candidate?.content?.parts;
     if (parts) {
       for (const part of parts) {
         if (part.inlineData?.data) {
-          return part.inlineData.data; // Éxito
+          return part.inlineData.data;
         }
       }
     }
 
-    // Error de respaldo si no se encuentra ninguna imagen por otras razones.
-    throw new Error("La respuesta de la IA no contenía una imagen. Esto puede deberse a filtros de seguridad o a un prompt demasiado complejo. Intenta simplificar la idea.");
+    throw new Error("La respuesta de la IA no contenía una imagen. Esto puede deberse a filtros de seguridad o a un prompt demasiado complejo.");
 
   } catch (error) {
     console.error("Error generating thumbnail:", error);
     if (error instanceof Error) {
-      // Re-lanzar el mensaje de error específico que creamos arriba o el original.
       throw error;
     }
-    // Fallback genérico.
     throw new Error("Ocurrió un error inesperado al generar la miniatura.");
   }
 };
