@@ -1,8 +1,14 @@
 import { GoogleGenAI, Type, Modality, GenerateContentResponse, FinishReason } from "@google/genai";
 import { GeneratedContent, AlternativeTitle } from "../types";
 
-// FIX: Use process.env.API_KEY to access the API key as per the guidelines.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Fix: Use process.env.API_KEY as per the coding guidelines.
+const apiKey = process.env.API_KEY;
+
+if (!apiKey) {
+  throw new Error("API_KEY is not defined. Please check your environment variables.");
+}
+
+const ai = new GoogleGenAI({ apiKey });
 
 const textModel = 'gemini-2.5-flash';
 const imageModel = 'gemini-2.5-flash-image';
