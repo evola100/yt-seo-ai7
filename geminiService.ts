@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type, Modality, GenerateContentResponse, FinishReason } from "@google/genai";
 import { GeneratedContent, AlternativeTitle } from "../types";
 
-// FIX: Corrected API key initialization to use 'process.env.API_KEY' as required by the coding guidelines.
+// FIX: Use process.env.API_KEY to access the API key as per the guidelines.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const textModel = 'gemini-2.5-flash';
@@ -250,3 +250,5 @@ export const generateYouTubeThumbnail = async (options: {
       throw error;
     }
     throw new Error("Ocurrió un error inesperado al generar la miniatura.");
+  }
+};
